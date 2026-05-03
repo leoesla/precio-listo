@@ -1,11 +1,18 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); // <-- NUEVO: Herramienta para manejar rutas de carpetas
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors()); 
 app.use(express.json()); 
+
+// --- NUEVO: Servir los archivos del frontend ---
+// Le decimos a Node que exponga públicamente la carpeta "frontend"
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// ... (Aquí abajo sigue tu Base de Datos Simulada y tus Rutas de /api/productos que ya tenías) ...
 
 // --- BASE DE DATOS SIMULADA ---
 // (Más adelante, estos datos los extraeremos con Web Scraping de las tiendas reales)

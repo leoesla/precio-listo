@@ -11,7 +11,7 @@
     <!-- Barra de Navegación -->
     <header class="navbar">
         <div class="logo">
-            <h1>PRECIO LISTO<span>✓</span></h1>
+            <img src="logo.png" alt="Logo Precio Listo" class="logo-img">
         </div>
         
         <div class="search-container">
@@ -20,10 +20,8 @@
         </div>
 
         <div class="user-actions">
-            <button class="login-btn" id="loginGoogleBtn">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" width="16" style="vertical-align: middle; margin-right: 5px;">
-                Iniciar sesión con Google
-            </button>
+            <!-- Contenedor vacío para el botón oficial de Google -->
+            <div id="googleBtnContainer"></div>
         </div>
     </header>
 
@@ -43,54 +41,18 @@
         </div>
 
         <!-- Grilla de Productos -->
-        <section class="products-grid">
-            
-            <!-- Tarjeta de Producto 1 -->
-            <article class="product-card">
-                <button class="fav-btn">🤍</button>
-                <div class="product-image">
-                    <!-- Usamos una imagen de muestra por ahora -->
-                    <img src="https://placehold.co/400x400/eeeeee/333333?text=Foto+Celular" alt="Smartphone">
-                </div>
-                <h3 class="product-title">Smartphone Samsung Galaxy A54 5G</h3>
-                <div class="prices">
-                    <div class="price-item">
-                        <span class="store">Falabella</span>
-                        <span class="amount">S/ 1,399</span>
-                    </div>
-                    <div class="price-item">
-                        <span class="store">Ripley</span>
-                        <span class="amount">S/ 1,419</span>
-                    </div>
-                </div>
-                <span class="badge">Mejor precio</span>
-                <a href="#" target="_blank" class="store-btn">VER EN TIENDA</a>
-            </article>
-
-            <!-- Tarjeta de Producto 2 -->
-            <article class="product-card">
-                <button class="fav-btn">🤍</button>
-                <div class="product-image">
-                    <img src="https://placehold.co/400x400/eeeeee/333333?text=Foto+Laptop" alt="Laptop">
-                </div>
-                <h3 class="product-title">Laptop HP Pavilion 15.6" Intel Core i5</h3>
-                <div class="prices">
-                    <div class="price-item">
-                        <span class="store">Curacao</span>
-                        <span class="amount">S/ 2,499</span>
-                    </div>
-                    <div class="price-item">
-                        <span class="store">Hiraoka</span>
-                        <span class="amount">S/ 2,550</span>
-                    </div>
-                </div>
-                <span class="badge">Mejor precio</span>
-                <a href="#" target="_blank" class="store-btn">VER EN TIENDA</a>
-            </article>
-
+        <section class="products-grid" id="contenedor-productos">
+            <!-- Las tarjetas se inyectarán aquí automáticamente con JavaScript -->
         </section>
 
     </main>
+
+    <!-- Script oficial de Google -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Script principal -->
+    <script src="main.js"></script>
+
 <!-- Botón flotante del Chatbot -->
     <div class="chatbot-floating">
         <button class="chat-btn">🤖 Precio Listo AI</button>
