@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path'); // <-- NUEVO: Herramienta para manejar rutas de carpetas
 const mysql = require('mysql2'); // <-- NUEVO: Importamos la herramienta de MySQL
 
-const { extraerLaptops } = require('./scraper'); // <-- Importamos tu robot
+const { extraerProductos } = require('./scraper');
 
 
 const { OAuth2Client } = require('google-auth-library');
@@ -75,13 +75,9 @@ app.get('/', (req, res) => {
 
 // NUEVA RUTA: Ahora llama al robot en tiempo real
 app.get('/api/productos', async (req, res) => {
-    try {
-        const productosReales = await extraerLaptops();
-        res.json(productosReales); 
-    } catch (error) {
-        console.error("Error al extraer productos:", error);
-        res.status(500).json({ error: 'Fallo al obtener los precios' });
-    }
+    const busqueda = req.query.q || 'laptop'; // Lee lo que viene de la barra de búsqueda
+    const productos = await extraerProductos(busqueda);
+    res.json(productos);
 });
 
 

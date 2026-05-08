@@ -1,59 +1,68 @@
 const puppeteer = require('puppeteer');
 
-async function extraerLaptops() {
-    console.log("🤖 Robot: Iniciando búsqueda en la sombra...");
+// Ahora la función es genérica y acepta un término de búsqueda (por defecto 'laptop')
+async function extraerProductos(termino = 'laptop') {
+    console.log(`🤖 Robot: Iniciando búsqueda de "${termino}"...`);
     
-    // 1. Lo ponemos en headless: false para ver qué está pasando y parecer un navegador real
+    // 1. Iniciamos el navegador (headless: false ayuda a evitar bloqueos iniciales)
     const browser = await puppeteer.launch({ headless: false }); 
     const page = await browser.newPage();
 
-    // 2. EL DISFRAZ: Le decimos a la tienda que somos un usuario humano usando Chrome en Windows
+    // 2. EL DISFRAZ: Imprescindible para que Mercado Libre no nos bloquee de inmediato
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-    // 3. Viajamos a la página de Mercado Libre
-    await page.goto('https://listado.mercadolibre.com.pe/laptop', { waitUntil: 'networkidle2' });
+    // 3. CONSTRUIMOS LA URL DINÁMICAMENTE
+    // Reemplazamos los espacios por guiones para que la URL sea válida
+    const urlBusqueda = `https://listado.mercadolibre.com.pe/${termino.replace(/ /g, '-')}`;
     
-    // 4. Esperamos a que carguen las tarjetas de los productos
-    await page.waitForSelector('.ui-search-result__wrapper');
+    try {
+        await page.goto(urlBusqueda, { waitUntil: 'networkidle2' });
+        
+        // 4. Esperamos a que carguen los resultados
+        await page.waitForSelector('.ui-search-result__wrapper', { timeout: 10000 });
 
-    const productosExtraidos = await page.evaluate(() => {
-        const cajasDeProductos = document.querySelectorAll('.ui-search-result__wrapper');
-        const resultados = [];
+        const productosExtraidos = await page.evaluate(() => {
+            const cajasDeProductos = document.querySelectorAll('.ui-search-result__wrapper');
+            const resultados = [];
 
-        // Extraeremos los 6 primeros productos
-        for (let i = 0; i < 6; i++) {
-            if (cajasDeProductos[i]) {
-                const titulo = cajasDeProductos[i].querySelector('.ui-search-item__title, .poly-component__title, h2')?.innerText || 'Laptop';
-                const precio = cajasDeProductos[i].querySelector('.andes-money-amount__fraction')?.innerText || '0';
-                
-                const imagenElemento = cajasDeProductos[i].querySelector('img');
-                const imagen = imagenElemento ? (imagenElemento.getAttribute('src') || imagenElemento.getAttribute('data-src')) : 'https://placehold.co/400x400?text=Sin+Imagen';
+            // Extraeremos los 6 primeros productos
+            for (let i = 0; i < 6; i++) {
+                if (cajasDeProductos[i]) {
+                    // Selectores para título, precio, imagen y enlace
+                    const titulo = cajasDeProductos[i].querySelector('.ui-search-item__title, .poly-component__title, h2')?.innerText || 'Producto';
+                    const precio = cajasDeProductos[i].querySelector('.andes-money-amount__fraction')?.innerText || '0';
+                    
+                    const imagenElemento = cajasDeProductos[i].querySelector('img');
+                    const imagen = imagenElemento ? (imagenElemento.getAttribute('src') || imagenElemento.getAttribute('data-src')) : 'https://placehold.co/400x400?text=Sin+Imagen';
 
-                // NUEVO: Buscamos la etiqueta "a" (enlace) y extraemos su atributo "href"
-                const enlaceElemento = cajasDeProductos[i].querySelector('a');
-                const enlaceReal = enlaceElemento ? enlaceElemento.getAttribute('href') : '#';
+                    const enlaceElemento = cajasDeProductos[i].querySelector('a');
+                    const enlaceReal = enlaceElemento ? enlaceElemento.getAttribute('href') : '#';
 
-                resultados.push({ 
-                    id: i + 1,
-                    nombre: titulo, 
-                    imagen: imagen,
-                    enlace: enlaceReal, // <-- Agregamos el enlace aquí
-                    precios: [
-                        { tienda: "Mercado Libre", monto: `S/ ${precio}` }
-                    ],
-                    etiqueta: "Precio Real"
-                });
+                    resultados.push({ 
+                        id: i + 1,
+                        nombre: titulo, 
+                        imagen: imagen,
+                        enlace: enlaceReal,
+                        precios: [
+                            { tienda: "Mercado Libre", monto: `S/ ${precio}` }
+                        ],
+                        etiqueta: "Precio Real"
+                    });
+                }
             }
-        }
-        return resultados;
-    });
+            return resultados;
+        });
 
-    // 5. Cerramos el navegador del robot una vez extraídos los datos
-    await browser.close();
-    console.log("✅ Robot: Búsqueda completada.");
-    
-    return productosExtraidos; // En lugar de imprimir, DEVOLVEMOS los datos a server.js
+        await browser.close();
+        console.log(`✅ Robot: Búsqueda de "${termino}" completada con éxito.`);
+        return productosExtraidos;
+
+    } catch (error) {
+        console.error("❌ El robot tuvo un problema:", error.message);
+        await browser.close();
+        return []; // Devolvemos lista vacía para que la app no se caiga
+    }
 }
 
-// Exportamos la función para usarla en server.js
-module.exports = { extraerLaptops };
+// Exportamos la nueva función dinámica
+module.exports = { extraerProductos };
