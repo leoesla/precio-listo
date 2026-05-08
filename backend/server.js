@@ -3,6 +3,8 @@ const cors = require('cors');
 const path = require('path'); // <-- NUEVO: Herramienta para manejar rutas de carpetas
 const mysql = require('mysql2'); // <-- NUEVO: Importamos la herramienta de MySQL
 
+const { extraerLaptops } = require('./scraper'); // <-- Importamos tu robot
+
 
 const { OAuth2Client } = require('google-auth-library');
 const CLIENT_ID = '1064703567271-a1fml4812297kedrj8qtjoq1l3l4ags2.apps.googleusercontent.com';
@@ -60,32 +62,9 @@ db.connect((error) => {
 
 
 
-// ... (Aquí abajo sigue tu Base de Datos Simulada y tus Rutas de /api/productos que ya tenías) ...
+// ... (Aquí abajo sigue tus Rutas de /api/productos que ya tenías) ...
 
-// --- BASE DE DATOS SIMULADA ---
-// (Más adelante, estos datos los extraeremos con Web Scraping de las tiendas reales)
-const listaDeProductos = [
-    {
-        id: 1,
-        nombre: "Smartphone Samsung Galaxy A54 5G",
-        imagen: "https://placehold.co/400x400/eeeeee/333333?text=Foto+Celular",
-        precios: [
-            { tienda: "Falabella", monto: "S/ 1,399" },
-            { tienda: "Ripley", monto: "S/ 1,419" }
-        ],
-        etiqueta: "Mejor precio"
-    },
-    {
-        id: 2,
-        nombre: "Laptop HP Pavilion 15.6 pulgadas Intel Core i5",
-        imagen: "https://placehold.co/400x400/eeeeee/333333?text=Foto+Laptop",
-        precios: [
-            { tienda: "Curacao", monto: "S/ 2,499" },
-            { tienda: "Hiraoka", monto: "S/ 2,550" }
-        ],
-        etiqueta: "Mejor precio"
-    }
-];
+
 
 // --- RUTAS (API) ---
 
@@ -94,9 +73,15 @@ app.get('/', (req, res) => {
     res.send('¡El motor de Precio Listo está funcionando perfectamente!');
 });
 
-// NUEVA RUTA: Aquí el frontend vendrá a pedir la lista de productos
-app.get('/api/productos', (req, res) => {
-    res.json(listaDeProductos); // Enviamos los datos en formato JSON
+// NUEVA RUTA: Ahora llama al robot en tiempo real
+app.get('/api/productos', async (req, res) => {
+    try {
+        const productosReales = await extraerLaptops();
+        res.json(productosReales); 
+    } catch (error) {
+        console.error("Error al extraer productos:", error);
+        res.status(500).json({ error: 'Fallo al obtener los precios' });
+    }
 });
 
 
