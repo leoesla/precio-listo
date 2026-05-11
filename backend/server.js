@@ -199,6 +199,24 @@ function enlazarFavorito(id_producto, id_usuario, res) {
     });
 }
 
+// NUEVA RUTA: Obtener la lista de favoritos de un usuario
+app.get('/api/favoritos/:usuario_id', (req, res) => {
+    const usuario_id = req.params.usuario_id;
+    
+    // Hacemos un JOIN: Unimos la tabla favoritos con productos para traer el nombre y la foto
+    const query = `
+        SELECT p.nombre_base AS nombre, p.imagen_url AS imagen
+        FROM favoritos f
+        JOIN productos p ON f.id_producto = p.id_producto
+        WHERE f.id_usuario = ?
+    `;
+    
+    db.query(query, [usuario_id], (err, resultados) => {
+        if (err) return res.status(500).json({ error: 'Error obteniendo favoritos' });
+        res.json(resultados);
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor de Precio Listo corriendo en http://localhost:${PORT}`);
 });
