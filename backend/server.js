@@ -152,6 +152,53 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// NUEVA RUTA: Guardar un producto en Favoritos
+app.post('/api/favoritos', (req, res) => {
+    // Recibimos los datos que nos mandará el botón del corazón
+    const { usuario_id, nombre, imagen, enlace } = req.body;
+
+    if (!usuario_id) {
+        return res.status(401).json({ error: "Debes iniciar sesión para guardar favoritos" });
+    }
+
+    // 1. Buscamos si el producto ya existe en nuestra base de datos general
+    const queryBuscarProd = 'SELECT id_producto FROM productos WHERE nombre_base = ?';
+    db.query(queryBuscarProd, [nombre], (err, prodResultados) => {
+        if (err) return res.status(500).json({ error: 'Error buscando producto' });
+
+        if (prodResultados.length > 0) {
+            // 2a. El producto ya existe, saltamos directo a enlazarlo con el usuario
+            enlazarFavorito(prodResultados[0].id_producto, usuario_id, res);
+        } else {
+            // 2b. Es un producto nuevo, lo registramos primero
+            const queryInsertarProd = 'INSERT INTO productos (nombre_base, categoria, imagen_url) VALUES (?, ?, ?)';
+            db.query(queryInsertarProd, [nombre, 'General', imagen], (err, insertResult) => {
+                if (err) return res.status(500).json({ error: 'Error creando producto' });
+                // Lo enlazamos usando el nuevo ID que MySQL acaba de crear
+                enlazarFavorito(insertResult.insertId, usuario_id, res);
+            });
+        }
+    });
+});
+
+// Función auxiliar para conectar al usuario con el producto
+function enlazarFavorito(id_producto, id_usuario, res) {
+    // Verificamos que no lo haya guardado antes para no duplicar
+    const queryCheck = 'SELECT * FROM favoritos WHERE id_usuario = ? AND id_producto = ?';
+    db.query(queryCheck, [id_usuario, id_producto], (err, favResultados) => {
+        if (favResultados.length > 0) {
+            return res.json({ mensaje: 'Este producto ya estaba en tus favoritos 🤍' });
+        }
+
+        // Creamos el enlace final en la tabla favoritos
+        const queryInsertarFav = 'INSERT INTO favoritos (id_usuario, id_producto) VALUES (?, ?)';
+        db.query(queryInsertarFav, [id_usuario, id_producto], (err) => {
+            if (err) return res.status(500).json({ error: 'Error guardando en favoritos' });
+            res.json({ mensaje: '¡Producto guardado en tus favoritos! ❤️' });
+        });
+    });
+}
+
 app.listen(PORT, () => {
     console.log(`Servidor de Precio Listo corriendo en http://localhost:${PORT}`);
 });
